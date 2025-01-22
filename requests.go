@@ -96,22 +96,23 @@ func requestShouldStop(e elevator) bool{
     }
 }
 
-func requests_shouldClearImmediately(e elevator, elevio.ButtonEvent.floor int, btn elevio.ButtonType){
-    switch(e.config.clearRequestVariant){
-    case CV_All:
-        return e.floor == btn_floor;
-    case CV_InDirn:
-        return 
-            e.floor == btn_floor && 
-            (
-                (e.dirn == D_Up   && btn_type == B_HallUp)    ||
-                (e.dirn == D_Down && btn_type == B_HallDown)  ||
-                e.dirn == D_Stop ||
-                btn_type == B_Cab
-            );  
-    default:
-        return 0;
-    }
+func requests_shouldClearImmediately(e elevator, btn elevio.ButtonEvent){
+    switch e.config.clearRequestVariant {
+
+ //   case CV_All:
+ //       return e.floor == btn_floor;
+ //   case CV_InDirn:
+ //       return 
+ //           e.floor == btn_floor && 
+ //           (
+ //               (e.dirn == D_Up   && btn_type == B_HallUp)    ||
+ //               (e.dirn == D_Down && btn_type == B_HallDown)  ||
+ //               e.dirn == D_Stop ||
+ //               btn_type == B_Cab
+ //           );  
+ //   default:
+ //       return 0;
+ //   }
 }
 
 
