@@ -11,7 +11,7 @@ func main(){
 
     elevio.Init("localhost:15657", numFloors)
     
-    var d elevio.MotorDirection = elevio.MD_Up
+    var d elevio.MotorDirection = elevio.DirectionUp
     //elevio.SetMotorDirection(d)
     
     drv_buttons := make(chan elevio.ButtonEvent)
@@ -34,9 +34,9 @@ func main(){
         case a := <- drv_floors:
             fmt.Printf("%+v\n", a)
             if a == numFloors-1 {
-                d = elevio.MD_Down
+                d = elevio.DirectionDown
             } else if a == 0 {
-                d = elevio.MD_Up
+                d = elevio.DirectionUp
             }
             elevio.SetMotorDirection(d)
             
@@ -44,7 +44,7 @@ func main(){
         case a := <- drv_obstr:
             fmt.Printf("%+v\n", a)
             if a {
-                elevio.SetMotorDirection(elevio.MD_Stop)
+                elevio.SetMotorDirection(elevio.DirectionStop)
             } else {
                 elevio.SetMotorDirection(d)
             }

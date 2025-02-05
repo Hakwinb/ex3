@@ -5,10 +5,10 @@ import "Driver-go/elevio"
 const Nfloors int = 4
 const Nbuttons int = 3
 
-func requestsAbove(e elevator) bool {
-	for f := e.floor + 1; f < Nfloors; f++ {
+func requestsAbove(e Elevator) bool {
+	for f := e.Floor + 1; f < Nfloors; f++ {
 		for btn := 0; btn < Nbuttons; btn++ {
-			if e.requests[f][btn] == 1 {
+			if e.Requests[f][btn] == 1 {
 				return true
 			}
 		}
@@ -16,10 +16,10 @@ func requestsAbove(e elevator) bool {
 	return false
 }
 
-func requestsBelow(e elevator) bool {
-	for f := 0; f < e.floor; f++ {
+func requestsBelow(e Elevator) bool {
+	for f := 0; f < e.Floor; f++ {
 		for btn := 0; btn < Nbuttons; btn++ {
-			if e.requests[f][btn] == 1 {
+			if e.Requests[f][btn] == 1 {
 				return true
 			}
 		}
@@ -27,92 +27,127 @@ func requestsBelow(e elevator) bool {
 	return false
 }
 
-func requestsHere(e elevator) bool {
+func requestsHere(e Elevator) bool {
 	for btn := 0; btn < Nbuttons; btn++ {
-		if e.requests[e.floor][btn] == 1 {
+		if e.Requests[e.Floor][btn] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-type behaviourPair struct {
+type BehaviourPair struct {
 	motorDirection elevio.MotorDirection
-	behaviour      elevatorBehaviour
+	behaviour      ElevatorBehaviour
 }
 
-func requestsChooseDirection(e elevator) behaviourPair {
-	switch e.direction {
-	case elevio.MD_Up:
+func requestsChooseDirection(e Elevator) BehaviourPair {
+	switch e.Direction {
+	case elevio.DirectionUp:
 		if requestsAbove(e) {
-			return behaviourPair{elevio.MD_Up, EB_moving}
+			return BehaviourPair{elevio.DirectionUp, EBehMoving}
 		} else if requestsHere(e) {
-			return behaviourPair{elevio.MD_Down, EB_doorOpen}
+			return BehaviourPair{elevio.DirectionDown, EBehDoorOpen}
 		} else if requestsBelow(e) {
-			return behaviourPair{elevio.MD_Down, EB_moving}
+			return BehaviourPair{
+				elevio.DirectionDown, EBehMoving}
 		}
-		return behaviourPair{elevio.MD_Stop, EB_idle}
+		return BehaviourPair{elevio.DirectionStop, EBehIdle}
 
-	case elevio.MD_Down:
+	case elevio.DirectionDown:
 		if requestsBelow(e) {
-			return behaviourPair{elevio.MD_Down, EB_moving}
+			return BehaviourPair{elevio.DirectionDown, EBehMoving}
 		} else if requestsHere(e) {
-			return behaviourPair{elevio.MD_Up, EB_doorOpen}
+			return BehaviourPair{elevio.DirectionUp, EBehDoorOpen}
 		} else if requestsAbove(e) {
-			return behaviourPair{elevio.MD_Up, EB_moving}
+			return BehaviourPair{elevio.DirectionUp, EBehMoving}
 		}
-		return behaviourPair{elevio.MD_Stop, EB_idle}
+		return BehaviourPair{elevio.DirectionStop, EBehIdle}
 
-	case elevio.MD_Stop:
+	case elevio.DirectionStop:
 
 		if requestsHere(e) {
-			return behaviourPair{elevio.MD_Stop, EB_doorOpen}
+			return BehaviourPair{elevio.DirectionStop, EBehDoorOpen}
 		} else if requestsAbove(e) {
-			return behaviourPair{elevio.MD_Up, EB_moving}
+			return BehaviourPair{elevio.DirectionUp, EBehMoving}
 		} else if requestsBelow(e) {
-			return behaviourPair{elevio.MD_Down, EB_moving}
+			return BehaviourPair{elevio.DirectionDown, EBehMoving}
 		}
-		return behaviourPair{elevio.MD_Stop, EB_idle}
+		return BehaviourPair{elevio.DirectionStop, EBehIdle}
 
 	default:
-		return behaviourPair{elevio.MD_Stop, EB_idle}
+		return BehaviourPair{elevio.DirectionStop, EBehIdle}
 	}
 }
 
-func requestShouldStop(e elevator) bool{
-    switch e.direction {
-    case elevio.MD_Down:
-        return  e.requests[e.floor][elevio.BT_HallDown] == 1 ||
-				e.requests[e.floor][elevio.BT_Cab] == 1 	 ||
-            	!requestsBelow(e);
-    case elevio.MD_Up:
-        return  e.requests[e.floor][elevio.BT_Cab] == 1 ||
-            	e.requests[e.floor][elevio.BT_Cab] == 1 ||
-            	!requestsAbove(e);
-    case elevio.MD_Stop:
+func requestShouldStop(e Elevator) bool {
+	switch e.Direction {
+	case elevio.DirectionDown:
+		return e.Requests[e.Floor][elevio.BtnHallDown] == 1 ||
+			e.Requests[e.Floor][elevio.BtnCab] == 1 ||
+			!requestsBelow(e)
+	case elevio.DirectionUp:
+		return e.Requests[e.Floor][elevio.BtnCab] == 1 ||
+			e.Requests[e.Floor][elevio.BtnCab] == 1 ||
+			!requestsAbove(e)
+	case elevio.DirectionStop:
 		fallthrough
-    default:
-        return true
-    }
+	default:
+		return true
+	}
 }
 
-func requests_shouldClearImmediately(e elevator, btn elevio.ButtonEvent){
-    switch e.config.clearRequestVariant {
-
- //   case CV_All:
- //       return e.floor == btn_floor;
- //   case CV_InDirn:
- //       return 
- //           e.floor == btn_floor && 
- //           (
- //               (e.dirn == D_Up   && btn_type == B_HallUp)    ||
- //               (e.dirn == D_Down && btn_type == B_HallDown)  ||
- //               e.dirn == D_Stop ||
- //               btn_type == B_Cab
- //           );  
- //   default:
- //       return 0;
- //   }
+func requestsSouldClearImmediately(e Elevator, btn elevio.ButtonEvent) bool {
+	switch e.ClearRV {
+	case CVAll:
+		return e.Floor == btn.Floor
+	case CVInDirection:
+		return e.Floor == btn.Floor &&
+			((e.Direction == elevio.DirectionUp && btn.Button == elevio.BtnHallUp) ||
+				(e.Direction == elevio.DirectionDown && btn.Button == elevio.BtnHallUp) ||
+				e.Direction == elevio.DirectionStop ||
+				btn.Button == elevio.BtnCab)
+	default:
+		return false
+	}
 }
 
+func requests_clearAtCurrentFloor(e Elevator) Elevator {
+	switch e.ClearRV {
+	case CVAll:
+		for btn := 0; btn < Nbuttons; btn++ {
+			e.Requests[e.Floor][btn] = 0
+		}
+		break
 
+	case CVInDirection:
+		e.Requests[e.Floor][elevio.BtnCab] = 0
+		switch e.Direction {
+		case elevio.DirectionUp:
+			if !requestsAbove(e) && e.Requests[e.Floor][elevio.BtnHallUp] == 0 {
+				e.Requests[e.Floor][elevio.BtnHallDown] = 0
+			}
+			e.Requests[e.Floor][elevio.BtnHallUp] = 0
+			break
+
+		case elevio.DirectionDown:
+			if !requestsBelow(e) && e.Requests[e.Floor][elevio.BtnHallDown] == 0 {
+				e.Requests[e.Floor][elevio.BtnHallUp] = 0
+			}
+			e.Requests[e.Floor][elevio.BtnHallDown] = 0
+			break
+
+		case elevio.DirectionStop:
+		default:
+			e.Requests[e.Floor][elevio.BtnHallUp] = 0
+			e.Requests[e.Floor][elevio.BtnHallDown] = 0
+			break
+		}
+		break
+
+	default:
+		break
+	}
+
+	return e
+}

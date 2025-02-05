@@ -2,27 +2,30 @@ package main
 
 import "Driver-go/elevio"
 
-type elevatorBehaviour int //liten bokstav??
+type ElevatorBehaviour int
 
 const (
-	EB_idle elevatorBehaviour = iota
-	EB_doorOpen
-	EB_moving
+	EBehIdle ElevatorBehaviour = iota
+	EBehDoorOpen
+	EBehMoving
 )
-
-type elevator struct { //Hvorfor liten e
-	floor     int
-	direction elevio.MotorDirection
-	requests  [Nfloors][Nbuttons]int
-	behaviour elevatorBehaviour
-}
-
-type ElevOutputDevice struct {
-}
 
 type ClearRequestVariant int 
 
 const (
 	CVAll ClearRequestVariant = iota
-	CVInMD
+	CVInDirection
 )
+
+
+type Elevator struct {
+	Floor     int
+	Direction elevio.MotorDirection
+	Requests  [Nfloors][Nbuttons]int
+	Behaviour ElevatorBehaviour
+	ClearRV ClearRequestVariant
+}
+
+type ElevOutputDevice struct {
+}
+
